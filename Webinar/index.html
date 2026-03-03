@@ -1010,37 +1010,73 @@ const io = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-// Register
+// Replace your existing register script with this
 
 document.getElementById("registerForm").addEventListener("submit", function(e) {
-  e.preventDefault(); // 🚀 STOP REDIRECT
+  e.preventDefault();
 
-  const name = document.getElementById("f-name").value;
-  const email = document.getElementById("f-email").value;
-  const phone = document.getElementById("f-phone").value;
-  const bg = document.getElementById("f-bg").value;
+  const name  = document.getElementById("f-name").value.trim();
+  const email = document.getElementById("f-email").value.trim();
+  const phone = document.getElementById("f-phone").value.trim();
+  const bg    = document.getElementById("f-bg").value;
 
-  fetch("https://docs.google.com/forms/d/e/1FAIpQLScAFtfMLm-G2AL1U3vWF9dIin33jt_iinlso63mYKpRZuE85A/formResponse", {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: 
-      "entry.1175444230=" + encodeURIComponent(name) +
-      "&entry.1520214772=" + encodeURIComponent(email) +
-      "&entry.113886255=" + encodeURIComponent(phone) +
-      "&entry.341074645=" + encodeURIComponent(bg)
-  })
-  .then(() => {
-    alert("Registration Successful ✅");
-    document.getElementById("registerForm").reset();
-  })
-  .catch(() => {
-    alert("Something went wrong ❌");
+  if (!name || !email || !phone || !bg) {
+    alert("Please fill all fields ❗");
+    return;
+  }
+
+  const btn = document.getElementById("submitBtn");
+  btn.textContent = "Submitting...";
+  btn.disabled = true;
+
+  // Build the Google Form URL with pre-filled entries
+  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLScAFtfMLm-G2AL1U3vWF9dIin33jt_iinlso63mYKpRZuE85A/formResponse";
+
+  const params = new URLSearchParams({
+    "entry.1175444230": name,
+    "entry.1520214772": email,
+    "entry.113886255":  phone,
+    "entry.341074645":  bg,
   });
+
+  // Use a hidden iframe — avoids CORS, works reliably every time
+  let iframe = document.getElementById("hidden-iframe");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.id   = "hidden-iframe";
+    iframe.name = "hidden-iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+  }
+
+  // Create a hidden form and submit it into the iframe
+  const hiddenForm = document.createElement("form");
+  hiddenForm.method = "POST";
+  hiddenForm.action = formURL;
+  hiddenForm.target = "hidden-iframe"; // submit INTO the iframe, not the page
+
+  params.forEach((val, key) => {
+    const input = document.createElement("input");
+    input.type  = "hidden";
+    input.name  = key;
+    input.value = val;
+    hiddenForm.appendChild(input);
+  });
+
+  document.body.appendChild(hiddenForm);
+  hiddenForm.submit();
+  document.body.removeChild(hiddenForm);
+
+  // Give Google ~1.5s to process, then show success
+  setTimeout(() => {
+    btn.textContent = "Register Now";
+    btn.disabled = false;
+    alert("Registration Successful ✅\nYou'll receive the Zoom link on your email.");
+    document.getElementById("registerForm").reset();
+  }, 1500);
 });
 
 </script>
 </body>
+
 </html>
