@@ -1010,7 +1010,13 @@ const io = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-// Replace your existing register script with this
+onst BG_MAP = {
+  "Student / Fresher":    "Student / Fresher",   // ← update if different
+  "IT Professional":      "IT Professional",       // ← this one works, keep it
+  "Developer / Engineer": "Developer / Engineer",  // ← update if different
+  "Network / Sysadmin":   "Network / Sysadmin",    // ← update if different
+  "Other":                "Other"                  // ← update if different
+};
 
 document.getElementById("registerForm").addEventListener("submit", function(e) {
   e.preventDefault();
@@ -1018,7 +1024,12 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
   const name  = document.getElementById("f-name").value.trim();
   const email = document.getElementById("f-email").value.trim();
   const phone = document.getElementById("f-phone").value.trim();
-  const bg    = document.getElementById("f-bg").value;
+  const bgRaw = document.getElementById("f-bg").value;
+  const bg    = BG_MAP[bgRaw] || bgRaw; // map to Google Form's exact value
+
+  // 🔍 DEBUG: Check what's being sent — open browser Console (F12) to see this
+  console.log("Submitting:", { name, email, phone, bg });
+  console.log("entry.341074645 value being sent:", bg);
 
   if (!name || !email || !phone || !bg) {
     alert("Please fill all fields ❗");
@@ -1029,17 +1040,8 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
   btn.textContent = "Submitting...";
   btn.disabled = true;
 
-  // Build the Google Form URL with pre-filled entries
   const formURL = "https://docs.google.com/forms/d/e/1FAIpQLScAFtfMLm-G2AL1U3vWF9dIin33jt_iinlso63mYKpRZuE85A/formResponse";
 
-  const params = new URLSearchParams({
-    "entry.1175444230": name,
-    "entry.1520214772": email,
-    "entry.113886255":  phone,
-    "entry.341074645":  bg,
-  });
-
-  // Use a hidden iframe — avoids CORS, works reliably every time
   let iframe = document.getElementById("hidden-iframe");
   if (!iframe) {
     iframe = document.createElement("iframe");
@@ -1049,13 +1051,22 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
     document.body.appendChild(iframe);
   }
 
-  // Create a hidden form and submit it into the iframe
   const hiddenForm = document.createElement("form");
   hiddenForm.method = "POST";
   hiddenForm.action = formURL;
-  hiddenForm.target = "hidden-iframe"; // submit INTO the iframe, not the page
+  hiddenForm.target = "hidden-iframe";
 
-  params.forEach((val, key) => {
+  const fields = {
+    "entry.1175444230": name,
+    "entry.1520214772": email,
+    "entry.113886255":  phone,
+    "entry.341074645":  bg,
+  };
+
+  // 🔍 DEBUG: Log every field being submitted
+  console.log("All fields being posted:", fields);
+
+  Object.entries(fields).forEach(([key, val]) => {
     const input = document.createElement("input");
     input.type  = "hidden";
     input.name  = key;
@@ -1067,7 +1078,6 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
   hiddenForm.submit();
   document.body.removeChild(hiddenForm);
 
-  // Give Google ~1.5s to process, then show success
   setTimeout(() => {
     btn.textContent = "Register Now";
     btn.disabled = false;
@@ -1080,4 +1090,5 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
 </body>
 
 </html>
+
 
