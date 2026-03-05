@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Security Headers -->
+<meta http-equiv="Content-Security-Policy"
+content="default-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data:; script-src 'self' 'unsafe-inline';">
+
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
 <title>Free VAPT Masterclass — Web · Network</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -722,13 +730,13 @@ footer {
     <div class="fg">
       <label>Background</label>
       <select id="f-bg" required>
-  <option value="">Select</option>
-  <option value="Student / Fresher">Student / Fresher</option>
-  <option value="IT Professional">IT Professional</option>
-  <option value="Developer / Engineer">Developer / Engineer</option>
-  <option value="Network / Sysadmin">Network / Sysadmin</option>
-  <option value="Other">Other</option>
-    </select>
+        <option value="">Select</option>
+        <option>Student / Fresher</option>
+        <option>IT Professional</option>
+        <option>Developer / Engineer</option>
+        <option>Network / Sysadmin</option>
+        <option>Other</option>
+      </select>
     </div>
 
     <button type="submit" id="submitBtn">Register Now</button>
@@ -832,7 +840,7 @@ footer {
         -->
         <div class="trainer-photo-box">
           <img
-            src="Sasank.jpg"
+            src="Siva.jpg"
             alt="Siva Prasad — Senior Security Analyst"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
           >
@@ -1010,85 +1018,37 @@ const io = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-onst BG_MAP = {
-  "Student / Fresher":    "Student / Fresher",   // ← update if different
-  "IT Professional":      "IT Professional",       // ← this one works, keep it
-  "Developer / Engineer": "Developer / Engineer",  // ← update if different
-  "Network / Sysadmin":   "Network / Sysadmin",    // ← update if different
-  "Other":                "Other"                  // ← update if different
-};
+// Register
 
 document.getElementById("registerForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+  e.preventDefault(); // 🚀 STOP REDIRECT
 
-  const name  = document.getElementById("f-name").value.trim();
-  const email = document.getElementById("f-email").value.trim();
-  const phone = document.getElementById("f-phone").value.trim();
-  const bgRaw = document.getElementById("f-bg").value;
-  const bg    = BG_MAP[bgRaw] || bgRaw; // map to Google Form's exact value
+  const name = document.getElementById("f-name").value;
+  const email = document.getElementById("f-email").value;
+  const phone = document.getElementById("f-phone").value;
+  const bg = document.getElementById("f-bg").value;
 
-  // 🔍 DEBUG: Check what's being sent — open browser Console (F12) to see this
-  console.log("Submitting:", { name, email, phone, bg });
-  console.log("entry.341074645 value being sent:", bg);
-
-  if (!name || !email || !phone || !bg) {
-    alert("Please fill all fields ❗");
-    return;
-  }
-
-  const btn = document.getElementById("submitBtn");
-  btn.textContent = "Submitting...";
-  btn.disabled = true;
-
-  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLScAFtfMLm-G2AL1U3vWF9dIin33jt_iinlso63mYKpRZuE85A/formResponse";
-
-  let iframe = document.getElementById("hidden-iframe");
-  if (!iframe) {
-    iframe = document.createElement("iframe");
-    iframe.id   = "hidden-iframe";
-    iframe.name = "hidden-iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-  }
-
-  const hiddenForm = document.createElement("form");
-  hiddenForm.method = "POST";
-  hiddenForm.action = formURL;
-  hiddenForm.target = "hidden-iframe";
-
-  const fields = {
-    "entry.1175444230": name,
-    "entry.1520214772": email,
-    "entry.113886255":  phone,
-    "entry.341074645":  bg,
-  };
-
-  // 🔍 DEBUG: Log every field being submitted
-  console.log("All fields being posted:", fields);
-
-  Object.entries(fields).forEach(([key, val]) => {
-    const input = document.createElement("input");
-    input.type  = "hidden";
-    input.name  = key;
-    input.value = val;
-    hiddenForm.appendChild(input);
-  });
-
-  document.body.appendChild(hiddenForm);
-  hiddenForm.submit();
-  document.body.removeChild(hiddenForm);
-
-  setTimeout(() => {
-    btn.textContent = "Register Now";
-    btn.disabled = false;
-    alert("Registration Successful ✅\nYou'll receive the Zoom link on your email.");
+  fetch("https://docs.google.com/forms/d/e/1FAIpQLScAFtfMLm-G2AL1U3vWF9dIin33jt_iinlso63mYKpRZuE85A/formResponse", {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: 
+      "entry.1175444230=" + encodeURIComponent(name) +
+      "&entry.1520214772=" + encodeURIComponent(email) +
+      "&entry.113886255=" + encodeURIComponent(phone) +
+      "&entry.341074645=" + encodeURIComponent(bg)
+  })
+  .then(() => {
+    alert("Registration Successful ✅");
     document.getElementById("registerForm").reset();
-  }, 1500);
+  })
+  .catch(() => {
+    alert("Something went wrong ❌");
+  });
 });
 
 </script>
 </body>
-
 </html>
-
-
